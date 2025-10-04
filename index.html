@@ -256,7 +256,7 @@
                   if (e.key === 'Enter') analyzeBtn.click();
               });
           });
-          
+
           async function analyzeGamingWellness(riotId, region) {
               const analyzeBtn = document.getElementById('analyze-wellness-btn');
               const messageDiv = document.getElementById('wellness-message');
@@ -284,6 +284,7 @@
                       displayWellnessAnalysis(data);
                       showWellnessMessage('Gaming wellness analysis complete!', 'success');
                   } else {
+                      console.log('API error response:', data);
                       showWellnessMessage(data.error || 'Analysis failed. Please try again.', 'error');
                   }
               } catch (error) {
@@ -295,7 +296,7 @@
               analyzeBtn.textContent = 'Analyze My Gaming Wellness';
               analyzeBtn.disabled = false;
           }
-          
+
           function displayWellnessAnalysis(data) {
               const resultsDiv = document.getElementById('wellness-results');
               
@@ -320,14 +321,14 @@
               
               resultsDiv.style.display = 'block';
           }
-          
+
           function getWellnessStatus(score) {
               if (score >= 80) return 'Excellent Balance! 🌟';
               if (score >= 60) return 'Good Balance 👍';
               if (score >= 40) return 'Needs Attention ⚡';
               return 'Focus on Wellness 💪';
           }
-          
+
           function showWellnessMessage(text, type) {
               const messageDiv = document.getElementById('wellness-message');
               messageDiv.textContent = text;
