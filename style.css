@@ -381,18 +381,19 @@ footer {
 }
 /* Fix for select options visibility in dark theme */
 select {
-    color: #ffffff; /* White text for the selected value (visible in dark bg) */
-    background: rgba(255, 255, 255, 0.1); /* Semi-transparent bg for select */
-    appearance: none; /* Remove default arrow for custom styling if needed */
-    -webkit-appearance: none; /* Safari fix */
+    color: #ffffff; /* White for selected value */
+    background: rgba(255, 255, 255, 0.1); /* Dark bg for select */
+    -webkit-appearance: none; /* Safari/Chrome fix */
+    -moz-appearance: none; /* Firefox fix */
+    appearance: none;
 }
 
 select option {
-    color: #000000 !important; /* Black text - force with !important */
-    background-color: #ffffff !important; /* White bg - force visibility */
+    color: #000000 !important; /* Force black text */
+    background-color: #ffffff !important; /* Force white bg */
 }
 
-/* Dark mode fallback (if system dark mode affects) */
+/* Handle system dark mode overrides */
 @media (prefers-color-scheme: dark) {
     select option {
         color: #000000 !important;
@@ -400,9 +401,10 @@ select option {
     }
 }
 
-/* Hover/focus for better UX */
+/* Hover/focus states for better visibility */
 select option:hover,
-select option:focus {
-    background-color: #f0f0f0 !important; /* Light gray on hover for contrast */
+select option:focus,
+select option:checked {
+    background-color: #f0f0f0 !important; /* Light gray on interaction */
     color: #000000 !important;
 }
