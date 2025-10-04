@@ -120,27 +120,224 @@
         </div>
       </section>
 
-      <section class="demo">
-        <h2>Preview: Your Wellness Dashboard</h2>
-        <div class="dashboard-preview">
-          <div class="metric-card">
-            <h4>Wellness Score</h4>
-            <div id="wellnessScore" class="score">--</div>
-            <p id="statusText" class="status">—</p>
+      <!-- Live Gaming Wellness Analysis -->
+      <section class="gaming-wellness-analysis">
+          <h2>Live Gaming Wellness Analysis</h2>
+          <p class="description">Connect your Riot ID to get AI-powered wellness insights from your recent League matches</p>
+          
+          <!-- Wellness Analysis Form -->
+          <div class="wellness-form-container">
+              <div id="wellness-message" class="wellness-message" style="display: none;"></div>
+              
+              <div class="form-group">
+                  <label for="riot-id">Your Riot ID</label>
+                  <input type="text" id="riot-id" placeholder="GameName#TAG (e.g., YourName#NA1)" required aria-label="Riot ID input">
+                  <small>Find this in your League client: Profile → Riot ID</small>
+              </div>
+              
+              <div class="form-group">
+                  <label for="player-region">Region</label>
+                  <select id="player-region" aria-label="Select region">
+                      <option value="na1">North America</option>
+                      <option value="euw1">Europe West</option>
+                      <option value="eun1">Europe Nordic & East</option>
+                      <option value="kr">Korea</option>
+                      <option value="br1">Brazil</option>
+                      <option value="jp1">Japan</option>
+                      <option value="oc1">Oceania</option>
+                      <option value="la1">Latin America North</option>
+                      <option value="la2">Latin America South</option>
+                      <option value="ru">Russia</option>
+                      <option value="tr1">Turkey</option>
+                      <option value="ph2">Philippines</option>
+                      <option value="sg2">Singapore</option>
+                      <option value="th2">Thailand</option>
+                      <option value="tw2">Taiwan</option>
+                      <option value="vn2">Vietnam</option>
+                  </select>
+              </div>
+              
+              <button type="button" id="analyze-wellness-btn" class="wellness-analyze-btn">
+                  Analyze My Gaming Wellness
+              </button>
+              <div id="loading-spinner" style="display: none; text-align: center; margin-top: 10px;">
+                  <span class="spinner"></span> Analyzing...
+              </div>
           </div>
 
-          <div class="metric-card">
-            <h4>This Week</h4>
-            <div id="totalPlaytime" class="stat">-- hrs</div>
-            <p class="label">Total Playtime</p>
-          </div>
+          <!-- Live Results Display -->
+          <div id="wellness-results" class="wellness-results" style="display: none;">
+              <div class="wellness-header">
+                  <h3 id="player-name">Player Analysis</h3>
+                  <p id="analysis-timestamp"></p>
+              </div>
+              
+              <div class="wellness-metrics-grid">
+                  <div class="wellness-metric-card primary">
+                      <h4>Wellness Score</h4>
+                      <div class="score-display">
+                          <span id="wellness-score">--</span>
+                          <span class="score-unit">/100</span>
+                      </div>
+                      <p id="wellness-status" class="status-text">Analyzing...</p>
+                  </div>
+                  
+                  <div class="wellness-metric-card">
+                      <h4>Session Balance</h4>
+                      <div class="stat-display">
+                          <span id="avg-duration">--</span>
+                          <span class="stat-unit">min avg</span>
+                      </div>
+                      <p class="label">Average Game Length</p>
+                  </div>
+                  
+                  <div class="wellness-metric-card">
+                      <h4>Performance</h4>
+                      <div class="stat-display">
+                          <span id="win-rate">--</span>
+                          <span class="stat-unit">% WR</span>
+                      </div>
+                      <p class="label">Recent Win Rate</p>
+                  </div>
+              </div>
 
-          <div class="metric-card">
-            <h4>AI Insight</h4>
-            <p id="aiInsight" class="insight">—</p>
+              <div class="ai-wellness-insight">
+                  <h4>🤖 AI Wellness Insight</h4>
+                  <p id="wellness-recommendation">Connecting to AWS Bedrock for personalized wellness story...</p>
+              </div>
+
+              <div class="match-analysis">
+                  <h4>📊 Recent Match Analysis</h4>
+                  <p><span id="matches-count">0</span> matches analyzed for wellness patterns</p>
+              </div>
           </div>
-        </div>
       </section>
+
+      <!-- Add CSS for spinner (in style.css) -->
+      <style>
+          .spinner {
+              border: 4px solid rgba(255, 255, 255, 0.3);
+              border-top: 4px solid #FFD700;
+              border-radius: 50%;
+              width: 24px;
+              height: 24px;
+              animation: spin 1s linear infinite;
+              display: inline-block;
+          }
+          @keyframes spin {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+          }
+      </style>
+
+      <script>
+          // Gaming Wellness AI - Live Riot API Integration
+          const GAMING_WELLNESS_API = 'https://e22lbyegwc5ems33hs2ravwheu0ahbkz.lambda-url.us-east-1.on.aws/'; // Replace with your Function URL
+          
+          document.addEventListener('DOMContentLoaded', function() {
+              const analyzeBtn = document.getElementById('analyze-wellness-btn');
+              const riotIdInput = document.getElementById('riot-id');
+              const regionSelect = document.getElementById('player-region');
+              
+              analyzeBtn.addEventListener('click', async function() {
+                  const riotId = riotIdInput.value.trim();
+                  const region = regionSelect.value;
+                  
+                  if (!riotId || !riotId.includes('#')) {
+                      showWellnessMessage('Please enter your Riot ID in format: GameName#TAG', 'error');
+                      return;
+                  }
+                  
+                  await analyzeGamingWellness(riotId, region);
+              });
+              
+              // Enter key support
+              riotIdInput.addEventListener('keypress', function(e) {
+                  if (e.key === 'Enter') analyzeBtn.click();
+              });
+          });
+          
+          async function analyzeGamingWellness(riotId, region) {
+              const analyzeBtn = document.getElementById('analyze-wellness-btn');
+              const messageDiv = document.getElementById('wellness-message');
+              const resultsDiv = document.getElementById('wellness-results');
+              
+              // Show loading state
+              analyzeBtn.textContent = 'Analyzing Gaming Wellness...';
+              analyzeBtn.disabled = true;
+              messageDiv.style.display = 'none';
+              resultsDiv.style.display = 'none';
+              
+              try {
+                  const response = await fetch(GAMING_WELLNESS_API, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                          summonerName: riotId,
+                          region: region
+                      })
+                  });
+                  
+                  const data = await response.json();
+                  
+                  if (response.ok) {
+                      displayWellnessAnalysis(data);
+                      showWellnessMessage('Gaming wellness analysis complete!', 'success');
+                  } else {
+                      showWellnessMessage(data.error || 'Analysis failed. Please try again.', 'error');
+                  }
+              } catch (error) {
+                  console.error('Gaming Wellness AI Error:', error);
+                  showWellnessMessage('Connection error. Please check your internet and try again.', 'error');
+              }
+              
+              // Reset button
+              analyzeBtn.textContent = 'Analyze My Gaming Wellness';
+              analyzeBtn.disabled = false;
+          }
+          
+          function displayWellnessAnalysis(data) {
+              const resultsDiv = document.getElementById('wellness-results');
+              
+              // Player info
+              document.getElementById('player-name').textContent = `${data.summoner.name} - Level ${data.summoner.level}`;
+              document.getElementById('analysis-timestamp').textContent = `Analysis generated: ${new Date().toLocaleString()}`;
+              
+              // Wellness metrics
+              if (data.wellness_metrics && data.wellness_metrics.wellness_score !== undefined) {
+                  document.getElementById('wellness-score').textContent = data.wellness_metrics.wellness_score;
+                  document.getElementById('avg-duration').textContent = data.wellness_metrics.avg_game_duration_minutes || '--';
+                  document.getElementById('win-rate').textContent = data.wellness_metrics.win_rate || '--';
+                  document.getElementById('wellness-status').textContent = getWellnessStatus(data.wellness_metrics.wellness_score);
+                  document.getElementById('wellness-recommendation').textContent = data.wellness_metrics.recommendation || 'Generating personalized wellness insights...';
+                  document.getElementById('matches-count').textContent = data.matches_analyzed || 0;
+              } else {
+                  // No recent matches
+                  document.getElementById('wellness-score').textContent = '--';
+                  document.getElementById('wellness-status').textContent = 'No recent matches found';
+                  document.getElementById('wellness-recommendation').textContent = 'Play some League matches to generate your wellness analysis!';
+              }
+              
+              resultsDiv.style.display = 'block';
+          }
+          
+          function getWellnessStatus(score) {
+              if (score >= 80) return 'Excellent Balance! 🌟';
+              if (score >= 60) return 'Good Balance 👍';
+              if (score >= 40) return 'Needs Attention ⚡';
+              return 'Focus on Wellness 💪';
+          }
+          
+          function showWellnessMessage(text, type) {
+              const messageDiv = document.getElementById('wellness-message');
+              messageDiv.textContent = text;
+              messageDiv.className = `wellness-message ${type}`;
+              messageDiv.style.display = 'block';
+              
+              setTimeout(() => messageDiv.style.display = 'none', 10000);
+          }
+      </script>
+
 
       <section class="tech-stack">
         <h2>Built with Professional AWS Architecture</h2>
