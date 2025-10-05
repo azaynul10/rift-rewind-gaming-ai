@@ -232,7 +232,7 @@
 
       <script>
           // Gaming Wellness AI - Live Riot API Integration
-          const GAMING_WELLNESS_API = 'https://e22lbyegwc5ems33hs2ravwheu0ahbkz.lambda-url.us-east-1.on.aws/';
+          const GAMING_WELLNESS_API = process.env.LAMBDA_FUNCTION_URL || 'fallback-url';
           
           document.addEventListener('DOMContentLoaded', function() {
               const analyzeBtn = document.getElementById('analyze-wellness-btn');
