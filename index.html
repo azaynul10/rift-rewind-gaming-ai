@@ -229,137 +229,150 @@
               100% { transform: rotate(360deg); }
           }
         </style>
-      <script type="module" src="https://unpkg.com/@aws-sdk/protocol-http@3.0.0/dist/es/index.js"></script>
-      <script type="module" src="https://unpkg.com/@aws-sdk/signature-v4@3.0.0/dist/es/index.js"></script>
-      <script type="module" src="https://unpkg.com/@aws-crypto/sha256-browser@3.0.0/dist/es/index.js"></script>
-      <script src="dashboard.js" type="module"></script>  # Add type="module" to dashboard.js script
-      <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1636.0.min.js">
-          // Gaming Wellness AI - Live Riot API Integration
-          const GAMING_WELLNESS_API = process.env.REACT_APP_LAMBDA_URL || 'fallback';
-          
-          document.addEventListener('DOMContentLoaded', function() {
-              const analyzeBtn = document.getElementById('analyze-wellness-btn');
-              const riotIdInput = document.getElementById('riot-id');
-              const regionSelect = document.getElementById('player-region');
-              
-              analyzeBtn.addEventListener('click', async function() {
-                  const riotId = riotIdInput.value.trim();
-                  const region = regionSelect.value;
-                  
-                  if (!riotId || !riotId.includes('#')) {
-                      showWellnessMessage('Please enter your Riot ID in format: GameName#TAG', 'error');
-                      return;
-                  }
-                  
-                  await analyzeGamingWellness(riotId, region);
-              });
-              
-              // Enter key support
-              riotIdInput.addEventListener('keypress', function(e) {
-                  if (e.key === 'Enter') analyzeBtn.click();
-              });
+      <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1636.0.min.js"></script>
+      <script>
+        // Gaming Wellness AI - Live Riot API Integration with Cognito
+        const GAMING_WELLNESS_API = process.env.REACT_APP_LAMBDA_URL || 'fallback';
+        const IDENTITY_POOL_ID = 'us-east-1:38bfab54-e8c1-4091-ae94-6cecbaf2d3d0';  // e.g., 'us-east-1:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+
+        // Configure AWS SDK v2 with Cognito for temporary credentials (unauthenticated/guest access)
+        AWS.config.region = 'us-east-1';
+        AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+          IdentityPoolId: IDENTITY_POOL_ID
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+          const analyzeBtn = document.getElementById('analyze-wellness-btn');
+          const riotIdInput = document.getElementById('riot-id');
+          const regionSelect = document.getElementById('player-region');
+
+          analyzeBtn.addEventListener('click', async function() {
+            const riotId = riotIdInput.value.trim();
+            const region = regionSelect.value;
+
+            if (!riotId || !riotId.includes('#')) {
+              showWellnessMessage('Please enter your Riot ID in format: GameName#TAG', 'error');
+              return;
+            }
+
+            await analyzeGamingWellness(riotId, region);
           });
 
-          async function analyzeGamingWellness(riotId, region) {
-              const analyzeBtn = document.getElementById('analyze-wellness-btn');
-              const messageDiv = document.getElementById('wellness-message');
-              const resultsDiv = document.getElementById('wellness-results');
-              
-              // Show loading state
-              analyzeBtn.textContent = 'Analyzing Gaming Wellness...';
-              analyzeBtn.disabled = true;
-              messageDiv.style.display = 'none';
-              resultsDiv.style.display = 'none';
-              
+          // Enter key support
+          riotIdInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') analyzeBtn.click();
+          });
+        });
+
+        async function analyzeGamingWellness(riotId, region) {
+          const analyzeBtn = document.getElementById('analyze-wellness-btn');
+          const messageDiv = document.getElementById('wellness-message');
+          const resultsDiv = document.getElementById('wellness-results');
+
+          // Show loading state
+          analyzeBtn.textContent = 'Analyzing Gaming Wellness...';
+          analyzeBtn.disabled = true;
+          messageDiv.style.display = 'none';
+          resultsDiv.style.display = 'none';
+
           try {
-                  const credentials = { accessKeyId: 'YOUR_ACCESS_KEY_ID', secretAccessKey: 'YOUR_SECRET_ACCESS_KEY' };  // Use Cognito for prod!
-                  const signer = new SignatureV4({
-                      credentials,
-                      region: 'us-east-1',
-                      service: 'lambda',
-                      sha256: Sha256
-                  });
-                  
-                  const requestToSign = new HttpRequest({
-                      method: 'POST',
-                      protocol: 'https:',
-                      hostname: 'e22lbyegwc5ems33hs2ravwheu0ahbkz.lambda-url.us-east-1.on.aws',
-                      path: '/',
-                      headers: {
-                          'Content-Type': 'application/json',
-                          'host': 'e22lbyegwc5ems33hs2ravwheu0ahbkz.lambda-url.us-east-1.on.aws'
-                      },
-                      body: JSON.stringify({ summonerName: riotId, region: region })
-                  });
-                  
-                  const signedRequest = await signer.sign(requestToSign);
-                  
-                  const response = await fetch(`${signedRequest.protocol}//${signedRequest.hostname}${signedRequest.path}`, {
-                      method: signedRequest.method,
-                      headers: signedRequest.headers,
-                      body: signedRequest.body
-                  });
-                  
-                  const data = await response.json();
-                  
-                  if (response.ok) {
-                      displayWellnessAnalysis(data);
-                      showWellnessMessage('Gaming wellness analysis complete!', 'success');
-                  } else {
-                      console.log('API error response:', data);
-                      showWellnessMessage(data.error || 'Analysis failed. Please try again.', 'error');
-                  }
-              } catch (error) {
-                  console.error('Gaming Wellness AI Error:', error);
-                  showWellnessMessage('Connection error. Please check your internet and try again.', 'error');
-              }
-              
-              // Reset button
-              analyzeBtn.textContent = 'Analyze My Gaming Wellness';
-              analyzeBtn.disabled = false;
+            // Fetch temporary credentials from Cognito (unauthenticated)
+            await new Promise((resolve, reject) => {
+              AWS.config.credentials.get((err) => {
+                if (err) {
+                  reject(err);
+                  return;
+                }
+                resolve();
+              });
+            });
+
+            if (!AWS.config.credentials.accessKeyId) {
+              throw new Error('Failed to obtain temporary credentials from Cognito');
+            }
+
+            // Prepare the endpoint and request using v2
+            const endpoint = new AWS.Endpoint('https://e22lbyegwc5ems33hs2ravwheu0ahbkz.lambda-url.us-east-1.on.aws/');
+            const request = new AWS.HttpRequest(endpoint, 'us-east-1');
+
+            request.method = 'POST';
+            request.path = '/';
+            request.headers['host'] = endpoint.host;
+            request.headers['Content-Type'] = 'application/json';
+            request.body = JSON.stringify({ summonerName: riotId, region: region });
+
+            // Sign the request with temporary credentials
+            const signer = new AWS.Signers.V4(request, 'lambda');
+            signer.addAuthorization(AWS.config.credentials, new Date());
+
+            // Send the signed request
+            const response = await fetch(endpoint.href, {
+              method: request.method,
+              headers: request.headers,
+              body: request.body
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              displayWellnessAnalysis(data);
+              showWellnessMessage('Gaming wellness analysis complete!', 'success');
+            } else {
+              console.log('API error response:', data);
+              showWellnessMessage(data.error || 'Analysis failed. Please try again.', 'error');
+            }
+          } catch (error) {
+            console.error('Gaming Wellness AI Error:', error);
+            showWellnessMessage('Connection error or credentials issue. Please check your setup and try again.', 'error');
           }
 
-          function displayWellnessAnalysis(data) {
-              const resultsDiv = document.getElementById('wellness-results');
-              
-              // Player info
-              document.getElementById('player-name').textContent = `${data.summoner.name} - Level ${data.summoner.level}`;
-              document.getElementById('analysis-timestamp').textContent = `Analysis generated: ${new Date().toLocaleString()}`;
-              
-              // Wellness metrics
-              if (data.wellness_metrics && data.wellness_metrics.wellness_score !== undefined) {
-                  document.getElementById('wellness-score').textContent = data.wellness_metrics.wellness_score;
-                  document.getElementById('avg-duration').textContent = data.wellness_metrics.avg_game_duration_minutes || '--';
-                  document.getElementById('win-rate').textContent = data.wellness_metrics.win_rate || '--';
-                  document.getElementById('wellness-status').textContent = getWellnessStatus(data.wellness_metrics.wellness_score);
-                  document.getElementById('wellness-recommendation').textContent = data.wellness_metrics.recommendation || 'Generating personalized wellness insights...';
-                  document.getElementById('matches-count').textContent = data.matches_analyzed || 0;
-              } else {
-                  // No recent matches
-                  document.getElementById('wellness-score').textContent = '--';
-                  document.getElementById('wellness-status').textContent = 'No recent matches found';
-                  document.getElementById('wellness-recommendation').textContent = 'Play some League matches to generate your wellness analysis!';
-              }
-              
-              resultsDiv.style.display = 'block';
+          // Reset button
+          analyzeBtn.textContent = 'Analyze My Gaming Wellness';
+          analyzeBtn.disabled = false;
+        }
+
+        // The rest of your functions remain unchanged (displayWellnessAnalysis, getWellnessStatus, showWellnessMessage)
+        function displayWellnessAnalysis(data) {
+          const resultsDiv = document.getElementById('wellness-results');
+
+          // Player info
+          document.getElementById('player-name').textContent = `${data.summoner ? data.summoner.name : 'Unknown'} - Level ${data.summoner ? data.summoner.level : '--'}`;
+          document.getElementById('analysis-timestamp').textContent = `Analysis generated: ${new Date().toLocaleString()}`;
+
+          // Wellness metrics
+          if (data.wellness_metrics && data.wellness_metrics.wellness_score !== undefined) {
+            document.getElementById('wellness-score').textContent = data.wellness_metrics.wellness_score;
+            document.getElementById('avg-duration').textContent = data.wellness_metrics.avg_game_duration_minutes || '--';
+            document.getElementById('win-rate').textContent = data.wellness_metrics.win_rate || '--';
+            document.getElementById('wellness-status').textContent = getWellnessStatus(data.wellness_metrics.wellness_score);
+            document.getElementById('wellness-recommendation').textContent = data.wellness_metrics.recommendation || 'Generating personalized wellness insights...';
+            document.getElementById('matches-count').textContent = data.matches_analyzed || 0;
+          } else {
+            // No recent matches
+            document.getElementById('wellness-score').textContent = '--';
+            document.getElementById('wellness-status').textContent = 'No recent matches found';
+            document.getElementById('wellness-recommendation').textContent = 'Play some League matches to generate your wellness analysis!';
           }
 
-          function getWellnessStatus(score) {
-              if (score >= 80) return 'Excellent Balance! 🌟';
-              if (score >= 60) return 'Good Balance 👍';
-              if (score >= 40) return 'Needs Attention ⚡';
-              return 'Focus on Wellness 💪';
-          }
+          resultsDiv.style.display = 'block';
+        }
 
-          function showWellnessMessage(text, type) {
-              const messageDiv = document.getElementById('wellness-message');
-              messageDiv.textContent = text;
-              messageDiv.className = `wellness-message ${type}`;
-              messageDiv.style.display = 'block';
-              
-              setTimeout(() => messageDiv.style.display = 'none', 10000);
-          }
-        </script>
+        function getWellnessStatus(score) {
+          if (score >= 80) return 'Excellent Balance! 🌟';
+          if (score >= 60) return 'Good Balance 👍';
+          if (score >= 40) return 'Needs Attention ⚡';
+          return 'Focus on Wellness 💪';
+        }
+
+        function showWellnessMessage(text, type) {
+          const messageDiv = document.getElementById('wellness-message');
+          messageDiv.textContent = text;
+          messageDiv.className = `wellness-message ${type}`;
+          messageDiv.style.display = 'block';
+
+          setTimeout(() => messageDiv.style.display = 'none', 10000);
+        }
+      </script>
 
 
       <section class="tech-stack">
