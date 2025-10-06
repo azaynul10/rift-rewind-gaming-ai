@@ -233,8 +233,7 @@
       <script>
         // Gaming Wellness AI - Live Riot API Integration with Cognito
         const GAMING_WELLNESS_API = process.env.REACT_APP_LAMBDA_URL || 'fallback';
-        const IDENTITY_POOL_ID = 'us-east-1:38bfab54-e8c1-4091-ae94-6cecbaf2d3d0';  // e.g., 'us-east-1:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
-
+        const IDENTITY_POOL_ID = 'us-east-1:38bfab54-e8c1-4091-ae94-6cecbaf2d3d0'; 
         // Configure AWS SDK v2 with Cognito for temporary credentials (unauthenticated/guest access)
         AWS.config.region = 'us-east-1';
         AWS.config.credentials = new AWS.CognitoIdentityCredentials({
