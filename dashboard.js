@@ -1,4 +1,7 @@
 // Gaming Wellness AI - Interactive Dashboard
+import { HttpRequest } from '@aws-sdk/protocol-http';
+import { SignatureV4 } from '@aws-sdk/signature-v4';
+import { Sha256 } from '@aws-crypto/sha256-browser';
 const metrics = {
   wellnessScore: null,
   weeklyPlaytime: null,

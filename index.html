@@ -229,8 +229,11 @@
               100% { transform: rotate(360deg); }
           }
         </style>
-
-      <script>
+      <script type="module" src="https://unpkg.com/@aws-sdk/protocol-http@3.0.0/dist/es/index.js"></script>
+      <script type="module" src="https://unpkg.com/@aws-sdk/signature-v4@3.0.0/dist/es/index.js"></script>
+      <script type="module" src="https://unpkg.com/@aws-crypto/sha256-browser@3.0.0/dist/es/index.js"></script>
+      <script src="dashboard.js" type="module"></script>  # Add type="module" to dashboard.js script
+      <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1636.0.min.js">
           // Gaming Wellness AI - Live Riot API Integration
           const GAMING_WELLNESS_API = process.env.REACT_APP_LAMBDA_URL || 'fallback';
           
@@ -268,14 +271,33 @@
               messageDiv.style.display = 'none';
               resultsDiv.style.display = 'none';
               
-              try {
-                  const response = await fetch(GAMING_WELLNESS_API, {
+          try {
+                  const credentials = { accessKeyId: 'YOUR_ACCESS_KEY_ID', secretAccessKey: 'YOUR_SECRET_ACCESS_KEY' };  // Use Cognito for prod!
+                  const signer = new SignatureV4({
+                      credentials,
+                      region: 'us-east-1',
+                      service: 'lambda',
+                      sha256: Sha256
+                  });
+                  
+                  const requestToSign = new HttpRequest({
                       method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                          summonerName: riotId,
-                          region: region
-                      })
+                      protocol: 'https:',
+                      hostname: 'e22lbyegwc5ems33hs2ravwheu0ahbkz.lambda-url.us-east-1.on.aws',
+                      path: '/',
+                      headers: {
+                          'Content-Type': 'application/json',
+                          'host': 'e22lbyegwc5ems33hs2ravwheu0ahbkz.lambda-url.us-east-1.on.aws'
+                      },
+                      body: JSON.stringify({ summonerName: riotId, region: region })
+                  });
+                  
+                  const signedRequest = await signer.sign(requestToSign);
+                  
+                  const response = await fetch(`${signedRequest.protocol}//${signedRequest.hostname}${signedRequest.path}`, {
+                      method: signedRequest.method,
+                      headers: signedRequest.headers,
+                      body: signedRequest.body
                   });
                   
                   const data = await response.json();
