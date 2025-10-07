@@ -279,9 +279,11 @@
             await new Promise((resolve, reject) => {
               AWS.config.credentials.get((err) => {
                 if (err) {
+                  console.error('Cognito Credential Error:', err);  // Log detailed error to console
                   reject(err);
                   return;
                 }
+                console.log('Cognito Credentials Fetched Successfully:', AWS.config.credentials);  // Confirm success
                 resolve();
               });
             });
@@ -310,7 +312,7 @@
               headers: request.headers,
               body: request.body
             });
-
+            console.log('Lambda Response Status:', response.status);  // Log status code (e.g., 403 for permission denied)
             const data = await response.json();
 
             if (response.ok) {
