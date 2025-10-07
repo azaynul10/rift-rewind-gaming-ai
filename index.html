@@ -266,11 +266,10 @@
           resultsDiv.style.display = 'none';
 
           try {
-            const response = await fetch('https://sh3r99uim5.execute-api.us-east-1.amazonaws.com/prod/analyze', {
+            const response = await fetch('https://p4munuxt3oc5iecxszjk6vzfj40asxjc.lambda-url.us-east-1.on.aws/', {
               method: 'POST',
               headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': 'VdbipjDkNP2Q1FjZKIYPHaHrbMqloqUr3rsE3SrV'
+                'Content-Type': 'application/json'
               },
               body: JSON.stringify({ summonerName: riotId, region: region })
             });
