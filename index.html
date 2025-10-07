@@ -274,45 +274,17 @@
           messageDiv.style.display = 'none';
           resultsDiv.style.display = 'none';
 
+          
           try {
-            // Fetch temporary credentials from Cognito (unauthenticated)
-            await new Promise((resolve, reject) => {
-              AWS.config.credentials.get((err) => {
-                if (err) {
-                  console.error('Cognito Credential Error:', err);  // Log detailed error to console
-                  reject(err);
-                  return;
-                }
-                console.log('Cognito Credentials Fetched Successfully:', AWS.config.credentials);  // Confirm success
-                resolve();
-              });
+            const response = await fetch('https://2zvotgsiw9.execute-api.us-east-1.amazonaws.com/prod/analyze', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'VdbipjDkNP2Q1FjZKIYPHaHrbMqloqUr3rsE3SrV'  // Replace with the generated key
+              },
+              body: JSON.stringify({ summonerName: riotId, region: region })
             });
 
-            if (!AWS.config.credentials.accessKeyId) {
-              throw new Error('Failed to obtain temporary credentials from Cognito');
-            }
-
-            // Prepare the endpoint and request using v2
-            const endpoint = new AWS.Endpoint('https://e22lbyegwc5ems33hs2ravwheu0ahbkz.lambda-url.us-east-1.on.aws/');
-            const request = new AWS.HttpRequest(endpoint, 'us-east-1');
-
-            request.method = 'POST';
-            request.path = '/';
-            request.headers['host'] = endpoint.host;
-            request.headers['Content-Type'] = 'application/json';
-            request.body = JSON.stringify({ summonerName: riotId, region: region });
-
-            // Sign the request with temporary credentials
-            const signer = new AWS.Signers.V4(request, 'lambda');
-            signer.addAuthorization(AWS.config.credentials, new Date());
-
-            // Send the signed request
-            const response = await fetch(endpoint.href, {
-              method: request.method,
-              headers: request.headers,
-              body: request.body
-            });
-            console.log('Lambda Response Status:', response.status);  // Log status code (e.g., 403 for permission denied)
             const data = await response.json();
 
             if (response.ok) {
@@ -324,8 +296,9 @@
             }
           } catch (error) {
             console.error('Gaming Wellness AI Error:', error);
-            showWellnessMessage('Connection error or credentials issue. Please check your setup and try again.', 'error');
+            showWellnessMessage('Connection error. Please check your setup and try again.', 'error');
           }
+
 
           // Reset button
           analyzeBtn.textContent = 'Analyze My Gaming Wellness';
