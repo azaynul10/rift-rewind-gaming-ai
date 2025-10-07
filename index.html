@@ -233,18 +233,18 @@
         // Gaming Wellness AI - Live Riot API Integration with Cognito
         const GAMING_WELLNESS_API = 'fallback';  
         const IDENTITY_POOL_ID = 'us-east-1:38bfab54-e8c1-4091-ae94-6cecbaf2d3d0'; 
-        // Configure AWS SDK v2 with Cognito for temporary credentials (unauthenticated/guest access)
+        
         AWS.config.region = 'us-east-1';
         AWS.config.credentials = new AWS.CognitoIdentityCredentials({
           IdentityPoolId: IDENTITY_POOL_ID
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
           const analyzeBtn = document.getElementById('analyze-wellness-btn');
           const riotIdInput = document.getElementById('riot-id');
           const regionSelect = document.getElementById('player-region');
 
-          analyzeBtn.addEventListener('click', async function() {
+          analyzeBtn.addEventListener('click', async function () {
             const riotId = riotIdInput.value.trim();
             const region = regionSelect.value;
 
@@ -257,7 +257,7 @@
           });
 
           // Enter key support
-          riotIdInput.addEventListener('keypress', function(e) {
+          riotIdInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') analyzeBtn.click();
           });
         });
@@ -273,7 +273,6 @@
           messageDiv.style.display = 'none';
           resultsDiv.style.display = 'none';
 
-          
           try {
             const response = await fetch('https://sh3r99uim5.execute-api.us-east-1.amazonaws.com/prod', {
               method: 'POST',
@@ -281,7 +280,7 @@
                 'Content-Type': 'application/json',
                 'x-api-key': 'VdbipjDkNP2Q1FjZKIYPHaHrbMqloqUr3rsE3SrV'
               },
-              body: JSON.stringify({ summonerName: riotId, region: region })  // Fix: Use the variables
+              body: JSON.stringify({ summonerName: riotId, region: region })
             });
 
             const data = await response.json();
@@ -305,6 +304,7 @@
           // Reset button
           analyzeBtn.textContent = 'Analyze My Gaming Wellness';
           analyzeBtn.disabled = false;
+        }
 
 
         // The rest of your functions remain unchanged (displayWellnessAnalysis, getWellnessStatus, showWellnessMessage)
