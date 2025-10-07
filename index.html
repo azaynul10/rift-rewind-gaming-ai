@@ -276,13 +276,12 @@
 
           
           try {
-            const response = await fetch('https://2zvotgsiw9.execute-api.us-east-1.amazonaws.com/prod/analyze', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': 'VdbipjDkNP2Q1FjZKIYPHaHrbMqloqUr3rsE3SrV'  // Replace with the generated key
-              },
-              body: JSON.stringify({ summonerName: riotId, region: region })
+            const response = await fetch('https://9l5b7yhwsk.execute-api.us-east-1.amazonaws.com/analytics', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(yourData)
             });
 
             const data = await response.json();
