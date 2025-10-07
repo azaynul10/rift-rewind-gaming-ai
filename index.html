@@ -229,7 +229,6 @@
               100% { transform: rotate(360deg); }
           }
         </style>
-      <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1636.0.min.js"></script>
       <script>
         // Gaming Wellness AI - Live Riot API Integration with Cognito
         const GAMING_WELLNESS_API = 'fallback';  
@@ -276,12 +275,13 @@
 
           
           try {
-            const response = await fetch('https://9l5b7yhwsk.execute-api.us-east-1.amazonaws.com/analytics', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(yourData)
+            const response = await fetch('https://sh3r99uim5.execute-api.us-east-1.amazonaws.com/prod', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': 'VdbipjDkNP2Q1FjZKIYPHaHrbMqloqUr3rsE3SrV'
+              },
+              body: JSON.stringify({ summonerName: riotId, region: region })  // Fix: Use the variables
             });
 
             const data = await response.json();
@@ -295,14 +295,17 @@
             }
           } catch (error) {
             console.error('Gaming Wellness AI Error:', error);
-            showWellnessMessage('Connection error. Please check your setup and try again.', 'error');
+            let message = 'Connection error. Please check your setup and try again.';
+            if (error.message && error.message.includes('net::ERR_NAME_NOT_RESOLVED')) {
+              message = 'Invalid API URL - check DNS or AWS config.';
+            }
+            showWellnessMessage(message, 'error');
           }
-
 
           // Reset button
           analyzeBtn.textContent = 'Analyze My Gaming Wellness';
           analyzeBtn.disabled = false;
-        }
+
 
         // The rest of your functions remain unchanged (displayWellnessAnalysis, getWellnessStatus, showWellnessMessage)
         function displayWellnessAnalysis(data) {
